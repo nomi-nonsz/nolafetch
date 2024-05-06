@@ -2,6 +2,11 @@ import time
 from datetime import datetime
 import sys, os, platform, socket, psutil, getpass, cpuinfo, lsb_release
 import psutil._psutil_linux, subprocess
+import pyautogui
+
+
+BOLD_ICON = False
+BOLD_ICON_CHAR = "\033[1;35m" if BOLD_ICON == True else "\033[0;35m"
 
 def getNameComponent(index):
   comp = {}
@@ -10,12 +15,12 @@ def getNameComponent(index):
   comp[3] = "_|\_| \___/ _| \__,_| \___/  ____/ "
   comp[0] = "-"*len(comp[1])
   if index > 0 and index < 4:
-    return "\033[1;36m" + (" "*4) + comp[index] + "\033[1;35m"
+    return "\033[1;36m" + (" "*4) + comp[index] + BOLD_ICON_CHAR
   
   return (" "*4) + comp[index]
 
 def get_host():
-  return " "*4 + f"\033[0;36m{getpass.getuser()}\033[0m@\033[0;36m{platform.node()}\033[1;35m"
+  return " "*4 + f"\033[0;36m{getpass.getuser()}\033[0m@\033[0;36m{platform.node() + BOLD_ICON_CHAR}"
 
 def get_product_name() -> str:
   path_name = '/sys/devices/virtual/dmi/id/product_name'
@@ -64,6 +69,10 @@ def get_os():
   release = lsb_release.get_os_release()
   return f"{release['DESCRIPTION']} [{release['CODENAME']}]"
 
+def get_resolution():
+  res = pyautogui.size()
+  return f"{res.width}x{res.height}"
+
 def getSystemInfo():
   uname = platform.uname()
 
@@ -82,14 +91,15 @@ def getSystemInfo():
   info['uptime'] = f"{get_uptime()['hour']} Hour, {get_uptime()['mins']} Mins"
   info['boottime'] = get_boottime()
   info['packages'] = f"{get_packages()['dpkg']} [dpkg], {get_packages()['snap']} [snap]"
+  info['resolution'] = get_resolution()
   return info
 
 def printSystemInfo(name, key):
   info = getSystemInfo()
-  return " "*4 + f"\033[1;35m{name}: \033[0m{info[key]}\033[1;35m"
+  return " "*4 + f"\033[1;35m{name}: \033[0m{info[key] + BOLD_ICON_CHAR}"
 
 def get_icon():
-  return f"""\033[1;35m
+  return f"""{BOLD_ICON_CHAR}
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⡶⠶⠿⠛⠛⠻⡶⠾⠟⠛⠛⠛⠻⠷⣦⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⡾⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠛⠷⣦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⢀⣴⠟⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠙⢷⣄⠀⠀⠀⠀⠀⠀⠀
@@ -132,7 +142,9 @@ def fetch():
     printSystemInfo('Boot Time', 'boottime'),
     printSystemInfo('Packages', 'packages'),
     printSystemInfo('Shell', 'shell'),
-    printSystemInfo('Architecture', 'arch')
+    printSystemInfo('Architecture', 'arch'),
+    printSystemInfo('Display', 'resolution'),
+    printSystemInfo('Memory', 'memory')
   ]
 
   for i in range(len(system_informations)):
@@ -151,7 +163,7 @@ def run():
   for p in texts:
     print(p, end='')
     sys.stdout.flush()
-    time.sleep(0.00001)
+    time.sleep(0.00005)
 
 if __name__ == '__main__':
   run()
